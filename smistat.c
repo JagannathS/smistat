@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <string.h>
 
 #define MSR_SMI_COUNT	(0x00000034)
 
@@ -84,9 +85,19 @@ static void heading(void)
 	printf("  Time        SMIs\n");
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	int row = 2;
+	if (argc == 2)
+		if (strcmp("-r", argv[1]) == 0) {
+			uint64_t smicount;
+			if (readmsr(0, MSR_SMI_COUNT, &smicount) < 0) {
+				fprintf(stderr, "MSR read failed\n");
+				exit(EXIT_FAILURE);
+			}
+			printf("%" PRIu64 "\n", smicount);
+			exit(EXIT_SUCCESS);
+		}
 
 	if ((getuid() != 0) || (geteuid() != 0)) {
 		fprintf(stderr, "Need to run as root.\n");
